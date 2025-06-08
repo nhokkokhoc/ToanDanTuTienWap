@@ -108,7 +108,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to update character skill points
-CREATE OR REPLACE FUNCTION update_character_skill_points(character_id UUID)
+CREATE OR REPLACE FUNCTION update_character_skill_points(char_id UUID)
 RETURNS VOID AS $$
 DECLARE
   char_level INTEGER;
@@ -118,22 +118,22 @@ DECLARE
 BEGIN
   -- Get character level and realm
   SELECT level, realm INTO char_level, char_realm
-  FROM characters WHERE id = character_id;
-  
+  FROM characters WHERE id = char_id;
+
   -- Calculate total skill points earned
-  total_points := calculate_skill_points_from_level(char_level) + 
+  total_points := calculate_skill_points_from_level(char_level) +
                   calculate_skill_points_from_breakthroughs(char_realm);
-  
+
   -- Calculate used skill points
   SELECT COALESCE(SUM(allocated_points), 0) INTO used_points
-  FROM character_skills WHERE character_id = character_id;
-  
+  FROM character_skills WHERE character_id = char_id;
+
   -- Update character skill points
-  UPDATE characters 
-  SET 
+  UPDATE characters
+  SET
     total_skill_points_earned = total_points,
     available_skill_points = total_points - used_points
-  WHERE id = character_id;
+  WHERE id = char_id;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -214,35 +214,48 @@ export const cultivation = {
   // Stop cultivation session
   stopCultivation: async (characterId: string) => {
     try {
-      // Calculate final progress
-      const progress = await cultivation.calculateProgress(characterId)
-      
+      // Calculate final progress and update points
+      await cultivation.updateProgress(characterId)
+
+      // Get updated character data
+      const { data: character, error: charError } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('id', characterId)
+        .single()
+
+      if (charError) throw charError
+
+      // Calculate session stats for logging
+      const sessionStart = character.cultivation_session_start ?
+        new Date(character.cultivation_session_start) : null
+      const sessionDuration = sessionStart ?
+        Math.floor((new Date().getTime() - sessionStart.getTime()) / (1000 * 60)) : 0
+
       const { data, error } = await supabase
         .from('characters')
         .update({
           is_cultivating: false,
           cultivation_session_start: null,
-          current_cultivation_points: progress.totalPoints,
-          total_cultivation_time: progress.totalTime,
           last_cultivation_check: new Date().toISOString()
         })
         .eq('id', characterId)
         .select()
         .single()
-      
+
       if (error) throw error
-      
+
       // Update cultivation session record
       await supabase
         .from('cultivation_sessions')
         .update({
           session_end: new Date().toISOString(),
-          duration_minutes: progress.sessionDuration,
-          points_gained: progress.sessionPoints
+          duration_minutes: sessionDuration,
+          points_gained: Math.floor(sessionDuration * CULTIVATION_CONFIG.POINTS_PER_MINUTE * (character.cultivation_speed || 1.0))
         })
         .eq('character_id', characterId)
         .is('session_end', null)
-      
+
       return { data, error: null }
     } catch (error) {
       console.error('Error stopping cultivation:', error)
@@ -258,34 +271,41 @@ export const cultivation = {
         .select('*')
         .eq('id', characterId)
         .single()
-      
+
       if (error) throw error
-      
+
       const now = new Date()
       const lastCheck = new Date(character.last_cultivation_check)
-      const sessionStart = character.cultivation_session_start ? 
+      const sessionStart = character.cultivation_session_start ?
         new Date(character.cultivation_session_start) : null
-      
-      // Calculate time elapsed since last check
+
+      // Calculate time elapsed since last check (for incremental updates)
       const elapsedMinutes = Math.floor((now.getTime() - lastCheck.getTime()) / (1000 * 60))
-      
+
       // Calculate session duration if actively cultivating
-      const sessionDuration = sessionStart ? 
+      const sessionDuration = sessionStart ?
         Math.floor((now.getTime() - sessionStart.getTime()) / (1000 * 60)) : 0
-      
+
       // Get cultivation speed
       const cultivationSpeed = await cultivation.calculateCultivationSpeed(characterId)
-      
-      // Calculate points gained
+
+      // Calculate points gained since last check (not total session)
       const pointsPerMinute = CULTIVATION_CONFIG.POINTS_PER_MINUTE * cultivationSpeed
-      const sessionPoints = Math.floor(pointsPerMinute * sessionDuration)
-      const totalPoints = character.current_cultivation_points + sessionPoints
-      
+      const pointsGainedSinceLastCheck = character.is_cultivating ?
+        Math.floor(pointsPerMinute * elapsedMinutes) : 0
+
+      // Calculate total session points (for display only)
+      const sessionPoints = sessionStart ?
+        Math.floor(pointsPerMinute * sessionDuration) : 0
+
+      const totalPoints = character.current_cultivation_points + pointsGainedSinceLastCheck
+
       return {
         totalPoints,
-        sessionPoints,
+        sessionPoints, // Total points gained this session (for display)
+        pointsGainedSinceLastCheck, // Points gained since last update (for saving)
         sessionDuration,
-        totalTime: character.total_cultivation_time + sessionDuration,
+        totalTime: character.total_cultivation_time + (character.is_cultivating ? elapsedMinutes : 0),
         cultivationSpeed,
         pointsPerHour: pointsPerMinute * 60,
         elapsedMinutes
@@ -295,6 +315,7 @@ export const cultivation = {
       return {
         totalPoints: 0,
         sessionPoints: 0,
+        pointsGainedSinceLastCheck: 0,
         sessionDuration: 0,
         totalTime: 0,
         cultivationSpeed: 1.0,
@@ -327,20 +348,25 @@ export const cultivation = {
   updateProgress: async (characterId: string) => {
     try {
       const progress = await cultivation.calculateProgress(characterId)
-      
-      const { data, error } = await supabase
-        .from('characters')
-        .update({
-          current_cultivation_points: progress.totalPoints,
-          total_cultivation_time: progress.totalTime,
-          last_cultivation_check: new Date().toISOString()
-        })
-        .eq('id', characterId)
-        .select()
-        .single()
-      
-      if (error) throw error
-      return { data, error: null }
+
+      // Only update if there are points gained since last check
+      if (progress.pointsGainedSinceLastCheck > 0 || progress.elapsedMinutes > 0) {
+        const { data, error } = await supabase
+          .from('characters')
+          .update({
+            current_cultivation_points: progress.totalPoints,
+            total_cultivation_time: progress.totalTime,
+            last_cultivation_check: new Date().toISOString()
+          })
+          .eq('id', characterId)
+          .select()
+          .single()
+
+        if (error) throw error
+        return { data, error: null }
+      }
+
+      return { data: null, error: null }
     } catch (error) {
       console.error('Error updating progress:', error)
       return { data: null, error }
