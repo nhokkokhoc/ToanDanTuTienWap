@@ -1,4 +1,4 @@
-import { Sect, SectType, SectBonus, CultivationRealm } from '@/types/game'
+import { Sect, SectType, SectBonus, CultivationRealm, SkillTree, SectSkill } from '@/types/game'
 
 // Sect Configuration Data
 export const SECTS: Record<SectType, Sect> = {
@@ -170,8 +170,307 @@ export const CHARACTER_NAME_RULES = {
 }
 
 // Helper functions
+// Skill Trees for each sect
+export const SKILL_TREES: Record<SectType, SkillTree> = {
+  sword: {
+    sectId: 'sword',
+    tiers: [
+      {
+        tier: 1,
+        name: 'Foundation Skills',
+        unlockRequirements: { level: 1 },
+        skills: [
+          {
+            id: 'sword_basic',
+            name: 'Cơ Bản Kiếm Pháp',
+            description: 'Nền tảng của kiếm thuật, tăng sức tấn công cơ bản.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 5,
+                valuePerLevel: 2,
+                statType: 'attack'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '⚔️'
+          },
+          {
+            id: 'sword_speed',
+            name: 'Tốc Kiếm',
+            description: 'Tăng tốc độ ra đòn và di chuyển.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 3,
+                valuePerLevel: 1,
+                statType: 'speed'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '💨'
+          },
+          {
+            id: 'sword_qi',
+            name: 'Kiếm Khí Cơ Bản',
+            description: 'Tăng tỷ lệ chí mạng khi sử dụng kiếm.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 0.02,
+                valuePerLevel: 0.01,
+                statType: 'criticalRate'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '✨'
+          }
+        ]
+      },
+      {
+        tier: 2,
+        name: 'Advanced Techniques',
+        unlockRequirements: { level: 10, previousTierSkills: 2 },
+        skills: [
+          {
+            id: 'sword_sharp_qi',
+            name: 'Kiếm Khí Sắc Bén',
+            description: 'Kiếm khí sắc bén hơn, tăng mạnh tỷ lệ chí mạng.',
+            type: 'passive',
+            tier: 2,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 10, prerequisiteSkills: ['sword_basic'] },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 0.08,
+                valuePerLevel: 0.02,
+                statType: 'criticalRate'
+              }
+            ],
+            skillPointCost: 2,
+            icon: '⚡'
+          },
+          {
+            id: 'sword_combo',
+            name: 'Liên Hoàn Kiếm',
+            description: 'Chuỗi đòn kiếm liên hoàn, tăng sức tấn công.',
+            type: 'passive',
+            tier: 2,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 10, prerequisiteSkills: ['sword_speed'] },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 10,
+                valuePerLevel: 3,
+                statType: 'attack'
+              }
+            ],
+            skillPointCost: 2,
+            icon: '🌪️'
+          },
+          {
+            id: 'sword_defense',
+            name: 'Phòng Thủ Kiếm',
+            description: 'Sử dụng kiếm để phòng thủ, tăng khả năng phòng thủ.',
+            type: 'passive',
+            tier: 2,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 10 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 5,
+                valuePerLevel: 2,
+                statType: 'defense'
+              }
+            ],
+            skillPointCost: 2,
+            icon: '🛡️'
+          }
+        ]
+      }
+    ]
+  },
+  lightning: {
+    sectId: 'lightning',
+    tiers: [
+      {
+        tier: 1,
+        name: 'Lightning Basics',
+        unlockRequirements: { level: 1 },
+        skills: [
+          {
+            id: 'lightning_basic',
+            name: 'Cơ Bản Lôi Pháp',
+            description: 'Nền tảng của lôi thuật, tăng sức tấn công ma thuật.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 4,
+                valuePerLevel: 2,
+                statType: 'attack'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '⚡'
+          },
+          {
+            id: 'lightning_speed',
+            name: 'Lôi Tốc',
+            description: 'Tốc độ nhanh như sét đánh, tăng tốc độ đáng kể.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 6,
+                valuePerLevel: 2,
+                statType: 'speed'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '💨'
+          }
+        ]
+      }
+    ]
+  },
+  medical: {
+    sectId: 'medical',
+    tiers: [
+      {
+        tier: 1,
+        name: 'Healing Arts',
+        unlockRequirements: { level: 1 },
+        skills: [
+          {
+            id: 'medical_basic',
+            name: 'Cơ Bản Y Thuật',
+            description: 'Nền tảng y thuật, tăng máu tối đa.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 100,
+                valuePerLevel: 50,
+                statType: 'spiritualPower' // Will be handled specially for health
+              }
+            ],
+            skillPointCost: 1,
+            icon: '💚'
+          }
+        ]
+      }
+    ]
+  },
+  defense: {
+    sectId: 'defense',
+    tiers: [
+      {
+        tier: 1,
+        name: 'Shield Basics',
+        unlockRequirements: { level: 1 },
+        skills: [
+          {
+            id: 'defense_basic',
+            name: 'Cơ Bản Khiên Pháp',
+            description: 'Nền tảng phòng thủ, tăng khả năng phòng thủ.',
+            type: 'passive',
+            tier: 1,
+            level: 0,
+            maxLevel: 10,
+            requirements: { level: 1 },
+            effects: [
+              {
+                type: 'stat_bonus',
+                target: 'self',
+                value: 8,
+                valuePerLevel: 3,
+                statType: 'defense'
+              }
+            ],
+            skillPointCost: 1,
+            icon: '🛡️'
+          }
+        ]
+      }
+    ]
+  }
+}
+
+// Skill Point Sources Configuration
+export const SKILL_POINT_SOURCES = {
+  level_up: 1,           // +1 per level
+  breakthrough: 3,       // +3 per realm breakthrough
+  milestone_levels: 2,   // +2 extra at levels 10, 20, 30...
+  achievements: 1,       // +1 per achievement (future)
+  special_events: 5      // +5 from special events (future)
+}
+
+// Skill Point Costs by Tier
+export const SKILL_COSTS = {
+  tier_1: 1,    // 1 point per level
+  tier_2: 2,    // 2 points per level
+  tier_3: 3,    // 3 points per level
+  tier_4: 5     // 5 points per level
+}
+
 export function getSectById(sectId: SectType): Sect {
   return SECTS[sectId]
+}
+
+export function getSkillTreeBySect(sectId: SectType): SkillTree {
+  return SKILL_TREES[sectId]
+}
+
+export function getSkillById(sectId: SectType, skillId: string): SectSkill | undefined {
+  const skillTree = SKILL_TREES[sectId]
+  for (const tier of skillTree.tiers) {
+    const skill = tier.skills.find(s => s.id === skillId)
+    if (skill) return skill
+  }
+  return undefined
 }
 
 export function calculateInitialStats(sectId: SectType) {

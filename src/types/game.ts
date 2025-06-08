@@ -69,17 +69,7 @@ export interface CharacterCreationData {
   sect: SectType
 }
 
-export interface SectBonus {
-  attack?: number
-  defense?: number
-  speed?: number
-  criticalRate?: number
-  criticalDamage?: number
-  accuracy?: number
-  evasion?: number
-  spiritualPower?: number
-  comprehension?: number
-  luck?: number
+export interface SectBonus extends Partial<CharacterStats> {
   health?: number
   mana?: number
 }
@@ -88,7 +78,7 @@ export interface Sect {
   id: SectType
   name: string
   description: string
-  bonuses: Partial<CharacterStats>
+  bonuses: SectBonus
   skills: SectSkill[]
   color: string
 }
@@ -98,6 +88,7 @@ export interface SectSkill {
   name: string
   description: string
   type: 'passive' | 'active' | 'ultimate'
+  tier: number // 1-4, higher tier = more powerful
   level: number
   maxLevel: number
   requirements: {
@@ -106,13 +97,59 @@ export interface SectSkill {
     prerequisiteSkills?: string[]
   }
   effects: SkillEffect[]
+  skillPointCost: number // Cost per level
+  icon?: string
 }
 
 export interface SkillEffect {
-  type: 'stat_bonus' | 'damage' | 'heal' | 'buff' | 'debuff'
+  type: 'stat_bonus' | 'cultivation_speed' | 'passive_ability' | 'damage' | 'heal' | 'buff' | 'debuff'
   target: 'self' | 'enemy' | 'all_enemies' | 'all_allies'
   value: number
+  valuePerLevel?: number // Additional value per skill level
   duration?: number // in seconds, for temporary effects
+  statType?: keyof CharacterStats // For stat_bonus effects
+}
+
+// Skill Tree System Types
+export interface SkillTree {
+  sectId: SectType
+  tiers: SkillTier[]
+}
+
+export interface SkillTier {
+  tier: number
+  name: string
+  skills: SectSkill[]
+  unlockRequirements: {
+    level?: number
+    realm?: CultivationRealm
+    previousTierSkills?: number // Number of skills from previous tier required
+  }
+}
+
+// Character Skill Progress
+export interface CharacterSkill {
+  id: string
+  characterId: string
+  skillId: string
+  skillLevel: number
+  allocatedPoints: number
+  unlockedAt: Date
+  isActive: boolean
+  currentEffects: SkillEffect[]
+}
+
+// Skill Points System
+export interface SkillPointsInfo {
+  available: number
+  totalEarned: number
+  sources: {
+    levelUp: number
+    breakthrough: number
+    milestones: number
+    achievements: number
+    events: number
+  }
 }
 
 export type CultivationRealm = 

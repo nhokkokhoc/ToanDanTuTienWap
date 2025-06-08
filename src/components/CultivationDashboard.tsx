@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Crown, TrendingUp, Clock, Zap, Star, ArrowUp } from 'lucide-react'
+import { Crown, TrendingUp, Clock, Zap, Star, ArrowUp, TreePine, User } from 'lucide-react'
 import CultivationTimer from './CultivationTimer'
 import OfflineProgress from './OfflineProgress'
 import BreakthroughModal from './BreakthroughModal'
 import LevelProgress from './LevelProgress'
+import SkillTree from './SkillTree'
 import { cultivation, REALM_DATA } from '@/lib/cultivation'
 import { CULTIVATION_REALMS } from '@/lib/gameData'
-import type { CultivationRealm } from '@/types/game'
+import type { CultivationRealm, SectType } from '@/types/game'
 
 interface CultivationDashboardProps {
   character: {
@@ -25,6 +26,7 @@ interface CultivationDashboardProps {
 }
 
 export default function CultivationDashboard({ character, onCharacterUpdate }: CultivationDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'cultivation' | 'skills'>('cultivation')
   const [showOfflineProgress, setShowOfflineProgress] = useState(false)
   const [showBreakthroughModal, setShowBreakthroughModal] = useState(false)
   const [cultivationActive, setCultivationActive] = useState(character.is_cultivating)
@@ -132,6 +134,34 @@ export default function CultivationDashboard({ character, onCharacterUpdate }: C
         />
       )}
 
+      {/* Tab Navigation */}
+      <div className="card">
+        <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('cultivation')}
+            className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md transition-all ${
+              activeTab === 'cultivation'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <User className="w-4 h-4 mr-2" />
+            Tu Luyện
+          </button>
+          <button
+            onClick={() => setActiveTab('skills')}
+            className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md transition-all ${
+              activeTab === 'skills'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <TreePine className="w-4 h-4 mr-2" />
+            Skill Tree
+          </button>
+        </div>
+      </div>
+
       {/* Character Header */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
@@ -199,8 +229,11 @@ export default function CultivationDashboard({ character, onCharacterUpdate }: C
         )}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Tab Content */}
+      {activeTab === 'cultivation' && (
+        <>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
           <CultivationTimer
@@ -384,28 +417,47 @@ export default function CultivationDashboard({ character, onCharacterUpdate }: C
         )}
       </div>
 
-      {/* Cultivation Tips */}
-      <div className="card bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-blue-500/30">
-        <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-          <Zap className="w-5 h-5 mr-2 text-blue-400" />
-          Mẹo Tu Luyện
-        </h3>
-        
-        <div className="space-y-2 text-sm">
-          <p className="text-blue-200">
-            🧘 <strong>Tu luyện liên tục:</strong> Để game chạy trong background để tích lũy điểm tu vi
-          </p>
-          <p className="text-purple-200">
-            ⚡ <strong>Offline bonus:</strong> Nhận 50% hiệu quả tu luyện ngay cả khi offline (tối đa 24h)
-          </p>
-          <p className="text-green-200">
-            🌟 <strong>Đột phá:</strong> Đạt đủ level và điểm tu luyện để nâng cấp cảnh giới
-          </p>
-          <p className="text-gold-200">
-            💎 <strong>Tông phái:</strong> Mỗi tông phái có bonus tu luyện khác nhau
-          </p>
-        </div>
-      </div>
+          {/* Cultivation Tips */}
+          <div className="card bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-blue-500/30">
+            <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+              <Zap className="w-5 h-5 mr-2 text-blue-400" />
+              Mẹo Tu Luyện
+            </h3>
+
+            <div className="space-y-2 text-sm">
+              <p className="text-blue-200">
+                🧘 <strong>Tu luyện liên tục:</strong> Để game chạy trong background để tích lũy điểm tu vi
+              </p>
+              <p className="text-purple-200">
+                ⚡ <strong>Offline bonus:</strong> Nhận 50% hiệu quả tu luyện ngay cả khi offline (tối đa 24h)
+              </p>
+              <p className="text-green-200">
+                🌟 <strong>Đột phá:</strong> Đạt đủ level và điểm tu luyện để nâng cấp cảnh giới
+              </p>
+              <p className="text-gold-200">
+                💎 <strong>Tông phái:</strong> Mỗi tông phái có bonus tu luyện khác nhau
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Skill Tree Tab */}
+      {activeTab === 'skills' && (
+        <SkillTree
+          characterId={character.id}
+          sectId={character.sect as SectType}
+          characterLevel={character.level}
+          characterRealm={character.realm}
+          onSkillUpgrade={() => {
+            // Refresh character data when skills are upgraded
+            if (onCharacterUpdate) {
+              // Could implement a more sophisticated refresh here
+              window.location.reload()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
