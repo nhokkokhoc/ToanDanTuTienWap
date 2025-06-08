@@ -1,0 +1,66 @@
+{
+  "name": "Toàn Dân Tu Tiên",
+  "short_name": "TuTien",
+  "description": "Hành trình tu tiên bất tận trong thế giới huyền bí",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "categories": ["games", "entertainment"],
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tu Luyện",
+      "short_name": "Cultivate",
+      "description": "Bắt đầu tu luyện ngay",
+      "url": "/cultivate",
+      "icons": [
+        {
+          "src": "/icon-cultivation.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Đấu Trường",
+      "short_name": "Arena",
+      "description": "Thách đấu PvP",
+      "url": "/arena",
+      "icons": [
+        {
+          "src": "/icon-arena.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
